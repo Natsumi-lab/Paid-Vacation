@@ -117,3 +117,24 @@ export async function getPendingRequestCount(employeeId: number): Promise<number
 
   return requests.length;
 }
+
+/**
+ * 従業員のすべての有給申請を取得
+ */
+export async function getAllRequestsByEmployeeId(
+  employeeId: number
+): Promise<LeaveRequestDisplay[]> {
+  const requests = await db.query.leaveRequests.findMany({
+    where: eq(leaveRequests.employeeId, employeeId),
+    orderBy: [desc(leaveRequests.createdAt)],
+  });
+
+  return requests.map((request) => ({
+    id: request.id,
+    requestDate: request.requestDate,
+    leaveType: request.leaveType,
+    days: request.days,
+    status: request.status,
+    reason: request.reason,
+  }));
+}
