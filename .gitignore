@@ -36,7 +36,7 @@ yarn-error.log*
 .env.*.local
 
 # keep example file
-!.env.example
+.env.example
 
 # database
 *.db
@@ -53,3 +53,6 @@ drizzle/meta
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# other
+IMPLEMENTATION_CHECKLIST
