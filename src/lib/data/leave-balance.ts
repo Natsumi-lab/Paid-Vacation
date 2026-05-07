@@ -1,6 +1,6 @@
 import { eq, and, desc } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { leaveBalances, leaveRequests, type LeaveBalance, type LeaveRequest } from "@/lib/db/schema";
+import { leaveBalances, leaveRequests, employees, type LeaveBalance, type LeaveRequest } from "@/lib/db/schema";
 
 // 現在の年度を取得（4月始まり）
 function getCurrentFiscalYear(): number {
@@ -137,4 +137,67 @@ export async function getAllRequestsByEmployeeId(
     status: request.status,
     reason: request.reason,
   }));
+}
+
+// 管理者用: 申請+従業員情報の表示用型
+export type AdminLeaveRequestDisplay = {
+  id: number;
+  requestDate: string;
+  leaveType: "full" | "am_half" | "pm_half";
+  days: number;
+  status: "pending" | "approved" | "rejected";
+  reason: string | null;
+  createdAt: string;
+  employeeId: number;
+  employeeName: string;
+  employeeNumber: string;
+  department: string;
+};
+
+/**
+ * 管理者用: すべての有給申請を従業員情報と共に取得
+ */
+export async function getAllRequestsForAdmin(): Promise<AdminLeaveRequestDisplay[]> {
+  const requests = await db
+    .select({
+      id: leaveRequests.id,
+      requestDate: leaveRequests.requestDate,
+      leaveType: leaveRequests.leaveType,
+      days: leaveRequests.days,
+      status: leaveRequests.status,
+      reason: leaveRequests.reason,
+      createdAt: leaveRequests.createdAt,
+      employeeId: leaveRequests.employeeId,
+      employeeName: employees.name,
+      employeeNumber: employees.employeeNumber,
+      department: employees.department,
+    })
+    .from(leaveRequests)
+    .innerJoin(employees, eq(leaveRequests.employeeId, employees.id))
+    .orderBy(desc(leaveRequests.createdAt));
+
+  return requests;
+}
+
+/**
+ * 管理者用: ステータス別の申請数を取得
+ */
+export async function getRequestCountsByStatus(): Promise<{
+  pending: number;
+  approved: number;
+  rejected: number;
+  total: number;
+}> {
+  const requests = await db.query.leaveRequests.findMany();
+
+  const pending = requests.filter((r) => r.status === "pending").length;
+  const approved = requests.filter((r) => r.status === "approved").length;
+  const rejected = requests.filter((r) => r.status === "rejected").length;
+
+  return {
+    pending,
+    approved,
+    rejected,
+    total: requests.length,
+  };
 }
