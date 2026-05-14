@@ -9,6 +9,7 @@ import {
   STATUS_LABELS,
   type AdminLeaveRequestDisplay,
 } from "@/lib/data/leave-balance";
+import { RequestActions } from "./request-actions";
 
 const PAGE_TITLE = "申請承認管理";
 
@@ -58,20 +59,7 @@ function RequestRow({ request }: { request: AdminLeaveRequestDisplay }) {
       </td>
       <td className="px-4 py-3">
         {request.status === "pending" && (
-          <div className="flex gap-2">
-            <button
-              type="button"
-              className="rounded bg-green-600 px-2 py-1 text-xs font-medium text-white transition hover:bg-green-700"
-            >
-              承認
-            </button>
-            <button
-              type="button"
-              className="rounded bg-red-600 px-2 py-1 text-xs font-medium text-white transition hover:bg-red-700"
-            >
-              却下
-            </button>
-          </div>
+          <RequestActions requestId={request.id} />
         )}
       </td>
     </tr>
